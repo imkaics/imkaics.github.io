@@ -1,71 +1,86 @@
-// 获取 canvas 元素
-var canvas = document.getElementById("fireworksCanvas");
-var ctx = canvas.getContext("2d");
-
-// 设置 canvas 宽度和高度
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-// 烟花数组
-var fireworks = [];
-
-// 创建烟花对象
-function Firework() {
-    this.x = Math.random() * canvas.width;
-    this.y = canvas.height;
-    this.vx = Math.random() * 4 - 2;
-    this.vy = Math.random() * -15 - 10;
-    this.color = "#" + ((1 << 24) * Math.random() | 0).toString(16);
-    this.radius = Math.random() * 5 + 1;
-    this.gravity = 0.1;
-
-    this.update = function() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += this.gravity;
-        this.radius -= 0.05;
-
-        if (this.radius <= 0) {
-            fireworks.splice(fireworks.indexOf(this), 1);
-        }
-    };
-
-    this.draw = function() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-    };
-}
-
-// 创建烟花
-function createFirework() {
-    var firework = new Firework();
-    fireworks.push(firework);
-}
-
-// 更新烟花
-function updateFireworks() {
-    for (var i = fireworks.length - 1; i >= 0; i--) {
-        fireworks[i].update();
-    }
-}
-
-// 绘制烟花
-function drawFireworks() {
-    for (var i = fireworks.length - 1; i >= 0; i--) {
-        fireworks[i].draw();
-    }
-}
-
-// 动画循环
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    createFirework();
-    updateFireworks();
-    drawFireworks();
-    requestAnimationFrame(animate);
-}
-
-// 启动动画
-animate();
+<script src="../jquery.js"></script> 
+<script>
+//获取各所需元素
+  var contain = document.getElementById("contain");
+  var box = document.getElementById("box");
+  var board = document.getElementsByClassName("board")[0];
+  var ball = document.getElementsByClassName("ball")[0];
+  var btn = document.getElementsByTagName("button")[0];
+  var score = document.getElementsByClassName("score")[0];
+  //分别代表board左距离、右距离；ball左距离、右距离
+  var board_left,board_top,ball_left,ball_top ;
+  var interval,flag=1,sum=0; 
+  
+  //设置小球的速度
+  var speedX = -1,speedY = -1;
+   
+  //监听鼠标进入box
+   box.onmousemove = function() {
+     //事件对象(兼容)
+    var e = event || window.event; 
+    //更改board的left和top
+    board_left = event.pageX - box.offsetLeft -50;
+    board_top = event.pageY - box.offsetTop;  
+    //检测board是否超出边框并更改board和ball位置
+    
+    if(board_left>=0 && board_left<=400) {
+      board.style.left = board_left + "px";
+      //flag的作用是防止点击按钮后再次进入Box后球的位置再变化
+      if(flag) {
+        ball_left = board_left + 45;
+        ball.style.left = ball_left + "px";
+      }  
+    }  
+    if(board_top>=0 && board_top<=390){
+      board.style.top =  board_top + "px";
+      if(flag) {
+        ball_top = board_top - 15;
+        ball.style.top = ball_top +"px";
+      }
+   } 
+   
+  }
+  
+  //监听按钮点击事件
+  btn.onclick = function() {
+    //清除定时器,防止定时器重叠
+    clearInterval(interval);
+    //flag=0后ball不再随board位置变化
+    flag=0;
+    //设置定时器
+    interval =  setInterval(function(){   
+      ball_left += speedX;
+      ball_top += speedY;
+ 
+      if(ball_left>=0 && ball_left<=485){
+        ball.style.left = ball_left + "px";
+      }
+      if(ball_top>=0 && ball_top<=385){
+        ball.style.top = ball_top + "px";
+      }
+ 
+      //球的方向改变
+      //撞d到左边右边边框
+      if(ball_left<0|| ball_left>485 ){
+        speedX = -speedX;  
+      }else if(ball_top<0){//撞到上边边框边框
+        speedY = -speedY; 
+      }  
+     
+      //检测ball碰到board
+      if((ball_top+15) >= board_top && ball_left>=board_left && ball_left <= (board_left+50)){
+        speedX = -speedX; 
+        speedY = -speedY;
+        //分数改变
+        sum+=5;
+        score.innerHTML = sum;
+ 
+      }
+      //游戏结束
+      if(ball_top>385 ){
+        alert("游戏结束，刷新后重新开始");
+        clearInterval(interval);
+      }
+    },5)    
+  }
+</script>
